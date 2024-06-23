@@ -1,7 +1,7 @@
 import { Schema, model } from "mongoose";
-import { TBuyer } from "./buyers.interface";
+import { TAdmin } from "./admins.interface";
 
-const buyerSchema = new Schema<TBuyer>(
+const adminSchema = new Schema<TAdmin>(
   {
     id: { type: String, unique: true },
     email: { type: String, unique: true, required: true, ref: "User" },
@@ -16,4 +16,4 @@ const buyerSchema = new Schema<TBuyer>(
   }
 );
 
-export const Buyer = model<TBuyer>("Buyer", buyerSchema);
+export const Admin = model<TAdmin>("Admin", adminSchema);
