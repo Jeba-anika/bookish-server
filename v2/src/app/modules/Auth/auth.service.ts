@@ -1,6 +1,8 @@
 import bcrypt from "bcrypt";
 import httpStatus from "http-status";
+import jwt from "jsonwebtoken";
 import mongoose from "mongoose";
+import config from "../../config";
 import AppError from "../../errors/AppError";
 import { Admin } from "../admins/admins.model";
 import { Buyer } from "../buyers/buyers.model";
@@ -64,6 +66,17 @@ const userLogin = async (payload: TUserLogin) => {
   if (!isPasswordMatched) {
     throw new AppError(httpStatus.FORBIDDEN, "Password is incorrect!");
   }
+
+  const token = jwt.sign(
+    { role: user.role, email: user.email, id: user.id },
+    config.jwt_secret as string,
+    {
+      expiresIn: config.jwt_access_expires_in as string,
+    }
+  );
+  const { password, ...userData } = user.toObject();
+
+  return { data: userData, token };
 };
 export const AuthService = {
   userSignUp,
