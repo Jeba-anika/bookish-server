@@ -6,3 +6,7 @@ export type TUserSignup = {
   contactNo: string;
   role: "admin" | "buyer" | "seller";
 };
+export type TUserLogin = {
+  email: string;
+  password: string;
+};

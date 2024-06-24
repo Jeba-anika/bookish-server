@@ -1,7 +1,9 @@
+import bcrypt from "bcrypt";
 import { Schema, model } from "mongoose";
-import { TUser } from "./user.interface";
+import config from "../../config";
+import { TUser, UserModel } from "./user.interface";
 
-const userSchema = new Schema<TUser>(
+const userSchema = new Schema<TUser, UserModel>(
   {
     id: { type: String, unique: true },
     email: { type: String, required: true, unique: true },
@@ -13,4 +15,16 @@ const userSchema = new Schema<TUser>(
   { timestamps: true }
 );
 
-export const User = model<TUser>("User", userSchema);
+userSchema.statics.isUserExist = async function (email: string) {
+  return await User.findOne({ email });
+};
+
+userSchema.pre("save", async function (next) {
+  this.password = await bcrypt.hash(
+    this.password,
+    Number(config.bcrypt_salt_round)
+  );
+  next();
+});
+
+export const User = model<TUser, UserModel>("User", userSchema);

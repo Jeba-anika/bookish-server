@@ -1,26 +1,29 @@
+import bcrypt from "bcrypt";
+import httpStatus from "http-status";
 import mongoose from "mongoose";
+import AppError from "../../errors/AppError";
 import { Admin } from "../admins/admins.model";
 import { Buyer } from "../buyers/buyers.model";
 import { Seller } from "../sellers/sellers.model";
 import { TUser } from "../user/user.interface";
 import { User } from "../user/user.model";
-import { TUserSignup } from "./auth.interface";
+import { TUserLogin, TUserSignup } from "./auth.interface";
 import { generateId } from "./auth.utils";
 
 const userSignUp = async (payload: TUserSignup) => {
   const session = await mongoose.startSession();
   try {
     await session.startTransaction();
-    const generatedId = await generateId(payload.role);
+    const generatedUserId = await generateId(payload.role);
     const userData: TUser = {
-      id: generatedId,
+      id: generatedUserId,
       email: payload.email,
       password: payload.password,
       role: payload.role,
     };
     await User.create(userData);
     const roleSpecificData = {
-      id: generateId,
+      id: generatedUserId,
       name: payload.name,
       email: payload.email,
       contactNo: payload.contactNo,
@@ -43,6 +46,26 @@ const userSignUp = async (payload: TUserSignup) => {
     throw new Error(err.message);
   }
 };
+
+const userLogin = async (payload: TUserLogin) => {
+  const user: TUser | null = await User.isUserExist(payload.email);
+  console.log(user);
+  if (!user) {
+    throw new AppError(httpStatus.NOT_FOUND, "User is not found!");
+  }
+  if (user && user?.isDeleted) {
+    throw new AppError(httpStatus.NOT_FOUND, "User is not found!");
+  }
+
+  const isPasswordMatched = await bcrypt.compare(
+    payload.password,
+    user.password
+  );
+  if (!isPasswordMatched) {
+    throw new AppError(httpStatus.FORBIDDEN, "Password is incorrect!");
+  }
+};
 export const AuthService = {
   userSignUp,
+  userLogin,
 };
