@@ -45,7 +45,7 @@ const userSignUp = async (payload: TUserSignup) => {
   } catch (err: any) {
     await session.abortTransaction();
     await session.endSession();
-    throw new Error(err.message);
+    throw err;
   }
 };
 
